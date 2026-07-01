@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdsBrief Studio — AI Ads Prompt Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── AUTH GATE ─────────────────────────────────────────────────────── -->
+<div id="auth-gate" class="auth-gate">
+  <div class="auth-card">
+    <div class="logo" style="justify-content:center;margin-bottom:6px"><div class="logo-dot"></div>Ads<span>Brief</span> Studio</div>
+    <p class="auth-sub">Masuk dengan email yang kamu pakai saat beli di Lynk.id</p>
+
+    <form id="auth-login-form" class="auth-form">
+      <input type="email" id="auth-email" class="auth-input" placeholder="Email kamu" autocomplete="email" required>
+      <input type="password" id="auth-password" class="auth-input" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" class="auth-btn" id="auth-login-btn">Masuk</button>
+    </form>
+
+    <div id="auth-error" class="auth-error" style="display:none"></div>
+    <div id="auth-info" class="auth-info" style="display:none"></div>
+
+    <button type="button" id="auth-forgot-btn" class="auth-link">Belum pernah set password / lupa password?</button>
+  </div>
+</div>
+
+<div id="app-content" style="display:none">
+
+<nav class="topbar">
+  <div class="logo"><div class="logo-dot"></div>Ads<span>Brief</span> Studio</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="badge">Beta</span>
+    <span id="auth-user-email" class="auth-user-email"></span>
+    <button type="button" id="auth-logout-btn" class="auth-logout-btn">Keluar</button>
+  </div>
+</nav>
+
+<!-- Mobile drawer overlay (outside app-shell, fixed position) -->
+<div class="mob-drawer-ov" id="mob_ov" onclick="closeMobDrawer()"></div>
+<div class="mob-drawer" id="mob_drawer">
+  <button class="mob-mode-btn active" onclick="switchMode('feed',this,'📸 Feed Ads')">📸 <span>Feed Ads</span></button>
+  <button class="mob-mode-btn" onclick="switchMode('typography',this,'🔤 Typography')">🔤 <span>Typography</span></button>
+  <button class="mob-mode-btn" onclick="switchMode('story',this,'📱 Story/Reels')">📱 <span>Story/Reels</span></button>
+  <button class="mob-mode-btn" onclick="switchMode('thumbnail',this,'▶️ Thumbnail')">▶️ <span>Thumbnail</span></button>
+  <button class="mob-mode-btn" onclick="switchMode('carousel',this,'🎠 Carousel')">🎠 <span>Carousel <span class="mob-badge">BARU</span></span></button>
+  <button class="mob-mode-btn" onclick="switchMode('grid9',this,'⊞ 9-Grid')">⊞ <span>9-Grid <span class="mob-badge">BARU</span></span></button>
+  <button class="mob-mode-btn" onclick="switchMode('product',this,'🛍️ Produk')">🛍️ <span>Produk</span></button>
+</div>
+
+<div class="app-shell">
+  <!-- MOBILE MODE BAR — inside app-shell so it doesn't break height calc -->
+  <div class="mob-bar">
+    <span class="mob-mode-label" id="mob_mode_label">📸 Feed Ads</span>
+    <button class="mob-toggle" onclick="openMobDrawer()">☰ Mode</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <button class="mode-btn active" data-mode="feed" data-tip="Feed Ads" onclick="switchMode('feed',this,'📸 Feed Ads')">
+      <span class="mi">📸</span><span class="ml">Feed</span>
+    </button>
+    <div class="mode-sep"></div>
+    <button class="mode-btn" data-mode="typography" data-tip="Typography" onclick="switchMode('typography',this,'🔤 Typography')">
+      <span class="mi">🔤</span><span class="ml">Typo</span>
+    </button>
+    <div class="mode-sep"></div>
+    <button class="mode-btn" data-mode="story" data-tip="Story / Reels" onclick="switchMode('story',this,'📱 Story/Reels')">
+      <span class="mi">📱</span><span class="ml">Story</span>
+    </button>
+    <div class="mode-sep"></div>
+    <button class="mode-btn" data-mode="thumbnail" data-tip="Thumbnail" onclick="switchMode('thumbnail',this,'▶️ Thumbnail')">
+      <span class="mi">▶️</span><span class="ml">Thumb</span>
+    </button>
+    <div class="mode-sep"></div>
+    <button class="mode-btn" data-mode="carousel" data-tip="Carousel" onclick="switchMode('carousel',this,'🎠 Carousel')">
+      <span class="mi">🎠</span><span class="ml">Carousel</span>
+      <span class="mode-badge">BARU</span>
+    </button>
+    <div class="mode-sep"></div>
+    <button class="mode-btn" data-mode="grid9" data-tip="9-Grid" onclick="switchMode('grid9',this,'⊞ 9-Grid')">
+      <span class="mi">⊞</span><span class="ml">9-Grid</span>
+      <span class="mode-badge">BARU</span>
+    </button>
+    <div class="mode-sep"></div>
+    <button class="mode-btn" data-mode="product" data-tip="Produk" onclick="switchMode('product',this,'🛍️ Produk')">
+      <span class="mi">🛍️</span><span class="ml">Produk</span>
+    </button>
+  </aside>
+
+  <div class="content-area">
+    <!-- LEFT PANEL -->
+    <div class="panel-left">
+
+      <!-- ══ FEED ══ -->
+      <div class="mode-panel active" id="mp_feed">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('tab',0,this,'mp_feed')">🏷️ Brand</button>
+          <button class="tab-btn" onclick="switchTab('tab',1,this,'mp_feed')">📢 Teks</button>
+          <button class="tab-btn" onclick="switchTab('tab',2,this,'mp_feed')">🖼️ Visual</button>
+          <button class="tab-btn" onclick="switchTab('tab',3,this,'mp_feed')">🎨 Gaya</button>
+          <button class="tab-btn" onclick="switchTab('tab',4,this,'mp_feed')">👥 Audiens</button>
+          <button class="tab-btn" onclick="switchTab('tab',5,this,'mp_feed')">⚙️ Output</button>
+        </div>
+
+        <div class="form-section active" id="tab-0">
+          <p class="sec-label">Identitas Brand</p>
+          <div class="field"><div class="field-label"><span>Nama Brand</span></div><input class="fi" id="brand_name" type="text" placeholder="cth. Wepose Travel Service"></div>
+          <div class="field"><div class="field-label"><span>Karakter Brand</span></div>
+            <div class="toggle-group" id="brand_voice">
+              <button class="tog" onclick="togSingle(this,'brand_voice')">Profesional</button>
+              <button class="tog on" onclick="togSingle(this,'brand_voice')">Ramah</button>
+              <button class="tog" onclick="togSingle(this,'brand_voice')">Berani</button>
+              <button class="tog" onclick="togSingle(this,'brand_voice')">Santai</button>
+              <button class="tog" onclick="togSingle(this,'brand_voice')">Mewah</button>
+              <button class="tog" onclick="togSingle(this,'brand_voice')">Edgy</button>
+            </div>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Palet Warna</p>
+          <div class="field"><div class="field-label"><span>Warna Utama</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_p" style="background:#0c3d4f"><input type="color" id="cp" value="#0c3d4f" oninput="syncLegacyC('p')"></div>
+              <input class="fi" id="hp" type="text" value="#0c3d4f" oninput="syncLegacyH('p')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem;text-transform:uppercase">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Warna Sekunder</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_s" style="background:#8ce0ff"><input type="color" id="cs" value="#8ce0ff" oninput="syncLegacyC('s')"></div>
+              <input class="fi" id="hs" type="text" value="#8ce0ff" oninput="syncLegacyH('s')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem;text-transform:uppercase">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Warna Aksen CTA</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_a" style="background:#e8b84b"><input type="color" id="ca" value="#e8b84b" oninput="syncLegacyC('a')"></div>
+              <input class="fi" id="ha" type="text" value="#e8b84b" oninput="syncLegacyH('a')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem;text-transform:uppercase">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Instruksi Harmoni Warna</span><span class="field-hint">Opsional</span></div>
+            <input class="fi" id="color_harmony" type="text" value="Create a cohesive color grading using these specific hex colors as the dominant palette.">
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Tipografi</p>
+          <div class="field"><div class="field-label"><span>Font Display</span></div>
+            <select class="fi" id="font_display"><option>Space Grotesk</option><option>Syne</option><option>Plus Jakarta Sans</option><option>Bebas Neue</option><option>Montserrat</option><option>Poppins</option><option>Anton</option></select>
+          </div>
+          <div class="field"><div class="field-label"><span>Font Isi</span></div>
+            <select class="fi" id="font_body"><option>Inter</option><option>DM Sans</option><option>Nunito</option><option>Lato</option></select>
+          </div>
+          <div class="field"><div class="field-label"><span>Area Aman Logo</span><span class="field-hint">px</span></div>
+            <div class="slider-row">
+              <input type="range" class="slider" id="logo_sz" min="8" max="48" value="16" oninput="document.getElementById('lsz_v').textContent=this.value+'px'">
+              <span class="slider-val" id="lsz_v">16px</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section" id="tab-1">
+          <p class="sec-label">Teks Iklan</p>
+          <div class="field"><div class="field-label"><span>Subjek / Konteks</span></div><input class="fi" id="subject" type="text" placeholder="cth. Banner promosi profesional untuk Wepose"></div>
+          <div class="field"><div class="field-label"><span>Judul Utama</span><span class="field-hint">Max 8 kata</span></div><input class="fi" id="headline" type="text" placeholder="cth. 800+ ORANG CEK VISA BULAN INI"></div>
+          <div class="field"><div class="field-label"><span>Subjudul</span></div><input class="fi" id="subheadline" type="text" placeholder="cth. Ternyata banyak yang melakukan kesalahan yang sama"></div>
+          <div class="field"><div class="field-label"><span>Deskripsi Visual</span></div><textarea class="fi" id="description" rows="3" placeholder="cth. Angka 800+ dibuat paling dominan..."></textarea></div>
+          <div class="field"><div class="field-label"><span>CTA</span></div><input class="fi" id="cta_text" type="text" placeholder="cth. Cek Kelayakan Visa Gratis"></div>
+          <hr class="divider">
+          <p class="sec-label">Spesifikasi CTA</p>
+          <div class="field"><div class="field-label"><span>Bentuk CTA</span></div>
+            <div class="toggle-group" id="cta_shape"><button class="tog on" onclick="togSingle(this,'cta_shape')">Bulat Penuh</button><button class="tog" onclick="togSingle(this,'cta_shape')">Sudut Bulat</button><button class="tog" onclick="togSingle(this,'cta_shape')">Kotak Tajam</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Ikon CTA</span></div>
+            <div class="toggle-group" id="cta_icon"><button class="tog on" onclick="togSingle(this,'cta_icon')">→ Arrow</button><button class="tog" onclick="togSingle(this,'cta_icon')">💬 WhatsApp</button><button class="tog" onclick="togSingle(this,'cta_icon')">✦ Star</button><button class="tog" onclick="togSingle(this,'cta_icon')">Tidak Ada</button></div>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">USP & Larangan</p>
+          <div class="field"><div class="field-label"><span>Fitur Unggulan</span><span class="field-hint">Enter untuk tambah</span></div>
+            <div class="tags-wrap" id="feat_wrap" onclick="document.getElementById('feat_in').focus()">
+              <input class="tag-input" id="feat_in" placeholder="Tambah fitur..." onkeydown="addTag(event,'feat_wrap')">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Elemen Terlarang</span></div>
+            <div class="tags-wrap" id="forb_wrap" onclick="document.getElementById('forb_in').focus()">
+              <span class="tag">clutter <span class="tag-x" onclick="removeTag(this)">×</span></span>
+              <span class="tag">serif font <span class="tag-x" onclick="removeTag(this)">×</span></span>
+              <input class="tag-input" id="forb_in" placeholder="Tambah larangan..." onkeydown="addTag(event,'forb_wrap')">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section" id="tab-2">
+          <p class="sec-label">Tata Letak Visual</p>
+          <div class="field"><div class="field-label"><span>Jumlah Foto Produk</span></div>
+            <div class="toggle-group" id="img_count"><button class="tog on" onclick="togSingle(this,'img_count')">0 — Tanpa Produk</button><button class="tog" onclick="togSingle(this,'img_count')">1 — Satu Produk</button><button class="tog" onclick="togSingle(this,'img_count')">2 — Dua Produk</button><button class="tog" onclick="togSingle(this,'img_count')">3+ — Multi</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Gaya Komposisi</span></div>
+            <div class="toggle-group" id="composition"><button class="tog on" onclick="togSingle(this,'composition')">Satu Produk, Fokus Utama</button><button class="tog" onclick="togSingle(this,'composition')">Layar Terbagi</button><button class="tog" onclick="togSingle(this,'composition')">Foto Datar</button><button class="tog" onclick="togSingle(this,'composition')">Kolase</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Penempatan</span></div>
+            <div class="toggle-group" id="placement"><button class="tog on" onclick="togSingle(this,'placement')">Tengah Dominan</button><button class="tog" onclick="togSingle(this,'placement')">Kiri Utama</button><button class="tog" onclick="togSingle(this,'placement')">Kanan Utama</button><button class="tog" onclick="togSingle(this,'placement')">Bawah Berat</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Integration & Blending</span></div>
+            <select class="fi" id="blending"><option>Blend mulus dengan bayangan dan refleksi yang sesuai gaya pencahayaan</option><option>Cutout tegas dengan drop shadow — produk melayang di atas background</option><option>Blend vignette lembut — produk menyatu ke background</option><option>Overlay glassmorphism — efek kaca buram di sekitar produk</option></select>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Kedalaman Fokus</p>
+          <div class="field">
+            <div class="toggle-group" id="dof"><button class="tog" onclick="togSingle(this,'dof')">Kotak Tajam All</button><button class="tog on" onclick="togSingle(this,'dof')">f/2.8 BG Blur</button><button class="tog" onclick="togSingle(this,'dof')">f/1.4 Bokeh</button></div>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Elemen UI</p>
+          <div class="field"><div class="field-label"><span>Gaya UI Mengambang</span></div>
+            <div class="toggle-group" id="ui_style"><button class="tog on" onclick="togSingle(this,'ui_style')">Kartu Glassmorphism</button><button class="tog" onclick="togSingle(this,'ui_style')">Lencana Minimal</button><button class="tog" onclick="togSingle(this,'ui_style')">Dashboard Data</button><button class="tog" onclick="togSingle(this,'ui_style')">Tidak Ada</button></div>
+          </div>
+        </div>
+
+        <div class="form-section" id="tab-3">
+          <p class="sec-label">Format & Aesthetic</p>
+          <div class="field"><div class="field-label"><span>Rasio Aspek</span></div>
+            <div class="ratio-grid" id="aspect_ratio">
+              <button class="ratio-btn" onclick="togRasio(this,'aspect_ratio')"><div class="ratio-shape" style="width:20px;height:20px"></div><span class="ratio-lbl">1:1<br>Persegi</span></button>
+              <button class="ratio-btn on" onclick="togRasio(this,'aspect_ratio')"><div class="ratio-shape" style="width:18px;height:22px"></div><span class="ratio-lbl">4:5<br>Feed</span></button>
+              <button class="ratio-btn" onclick="togRasio(this,'aspect_ratio')"><div class="ratio-shape" style="width:14px;height:25px"></div><span class="ratio-lbl">9:16<br>Story</span></button>
+              <button class="ratio-btn" onclick="togRasio(this,'aspect_ratio')"><div class="ratio-shape" style="width:25px;height:14px"></div><span class="ratio-lbl">16:9<br>Banner</span></button>
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Preset Gaya</span></div>
+            <div class="toggle-group" id="style_preset"><button class="tog on" onclick="togSingle(this,'style_preset')">Cerah & Segar</button><button class="tog" onclick="togSingle(this,'style_preset')">Hangat & Nyaman</button><button class="tog" onclick="togSingle(this,'style_preset')">Gelap Neon</button><button class="tog" onclick="togSingle(this,'style_preset')">Minimalis Bersih</button><button class="tog" onclick="togSingle(this,'style_preset')">Mewah Gold</button><button class="tog" onclick="togSingle(this,'style_preset')">Retro Hangat</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Kata Kunci Estetika</span></div><input class="fi" id="aesthetic_kw" type="text" value="modern lifestyle feel, approachable, premium"></div>
+          <hr class="divider">
+          <p class="sec-label">Pencahayaan</p>
+          <div class="field">
+            <div class="toggle-group" id="lighting"><button class="tog on" onclick="togSingle(this,'lighting')">Studio 3 Titik</button><button class="tog" onclick="togSingle(this,'lighting')">Cahaya Alami Lembut</button><button class="tog" onclick="togSingle(this,'lighting')">Dramatis Kontras Tinggi</button><button class="tog" onclick="togSingle(this,'lighting')">Cahaya Belakang</button><button class="tog" onclick="togSingle(this,'lighting')">Neon Cyberpunk</button></div>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Instruksi Tipografi</p>
+          <div class="field"><textarea class="fi" id="typo_note" rows="3">Leave clear negative space for typography. The generated image should include sleek modern typography for the headline/features, or provide clean areas where text can be overlaid perfectly later.</textarea></div>
+          <hr class="divider">
+          <p class="sec-label">Aturan Komposisi</p>
+          <div class="field">
+            <div class="toggle-group" id="comp_rules"><button class="tog on" onclick="togMulti(this)">Aturan Sepertiga</button><button class="tog on" onclick="togMulti(this)">Hierarki Visual Jelas</button><button class="tog on" onclick="togMulti(this)">BG Tidak Mendominasi</button><button class="tog" onclick="togMulti(this)">Keseimbangan Simetris</button><button class="tog" onclick="togMulti(this)">Rasio Emas</button></div>
+          </div>
+        </div>
+
+        <div class="form-section" id="tab-4">
+          <p class="sec-label">Target Audiens</p>
+          <div class="field"><div class="field-label"><span>Demografis</span></div><input class="fi" id="demographic" type="text" value="Millennial & Gen-Z Indonesia"></div>
+          <div class="field"><div class="field-label"><span>Rentang Usia</span></div>
+            <div class="fi-row"><input class="fi" id="age_min" type="number" value="22" placeholder="Min"><input class="fi" id="age_max" type="number" value="35" placeholder="Max"></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Psikografis</span></div><textarea class="fi" id="psychographic" rows="2">Traveler impulsif, price-sensitive, mobile-first</textarea></div>
+          <div class="field"><div class="field-label"><span>Platform</span></div>
+            <div class="toggle-group" id="platform"><button class="tog on" onclick="togSingle(this,'platform')">Instagram Feed</button><button class="tog" onclick="togSingle(this,'platform')">TikTok</button><button class="tog" onclick="togSingle(this,'platform')">Facebook Ads</button><button class="tog" onclick="togSingle(this,'platform')">Google Display</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Prioritas Scroll-Stop</span></div>
+            <div class="toggle-group" id="scroll_stop"><button class="tog on" onclick="togSingle(this,'scroll_stop')">Hook Visual 3 Detik</button><button class="tog" onclick="togSingle(this,'scroll_stop')">Tarikan Emosional</button><button class="tog" onclick="togSingle(this,'scroll_stop')">Kejutan Harga</button><button class="tog" onclick="togSingle(this,'scroll_stop')">Gap Rasa Penasaran</button></div>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Varian A/B</p>
+          <div class="field"><div class="field-label"><span>Generate Varian</span></div>
+            <div class="toggle-group" id="ab_on"><button class="tog on" onclick="togSingle(this,'ab_on')">Ya — 2 Varian</button><button class="tog" onclick="togSingle(this,'ab_on')">Tidak</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Metrik Varian</span></div>
+            <div class="toggle-group" id="ab_metric"><button class="tog on" onclick="togSingle(this,'ab_metric')">Skor Kontras Visual</button><button class="tog" onclick="togSingle(this,'ab_metric')">Warna CTA</button><button class="tog" onclick="togSingle(this,'ab_metric')">Tata Letak</button><button class="tog" onclick="togSingle(this,'ab_metric')">Judul Tone</button></div>
+          </div>
+        </div>
+
+        <div class="form-section" id="tab-5">
+          <p class="sec-label">Parameter Output</p>
+          <div class="field"><div class="field-label"><span>Kualitas</span></div>
+            <div class="toggle-group" id="quality"><button class="tog" onclick="togSingle(this,'quality')">Standar</button><button class="tog on" onclick="togSingle(this,'quality')">Tinggi</button><button class="tog" onclick="togSingle(this,'quality')">Ultra</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Level Fotorealisme</span></div>
+            <div class="slider-row">
+              <input type="range" class="slider" id="photorealism" min="1" max="5" value="4" oninput="updatePhoto(this.value)">
+              <span class="slider-val" id="photo_v">ultra-realistic, 8k</span>
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Tipe File</span></div>
+            <div class="toggle-group" id="file_type"><button class="tog on" onclick="togSingle(this,'file_type')">PNG</button><button class="tog" onclick="togSingle(this,'file_type')">WebP</button><button class="tog" onclick="togSingle(this,'file_type')">JPG</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Latar Belakang</span></div>
+            <div class="toggle-group" id="bg_type"><button class="tog on" onclick="togSingle(this,'bg_type')">Warna Solid</button><button class="tog" onclick="togSingle(this,'bg_type')">Transparan</button><button class="tog" onclick="togSingle(this,'bg_type')">Gradien</button></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Resolusi</span></div>
+            <div class="toggle-group" id="resolution"><button class="tog" onclick="togSingle(this,'resolution')">72 DPI (Web)</button><button class="tog on" onclick="togSingle(this,'resolution')">150 DPI (Sosial)</button><button class="tog" onclick="togSingle(this,'resolution')">300 DPI (Cetak)</button></div>
+          </div>
+          <hr class="divider">
+          <p class="sec-label">Prompt Negatif</p>
+          <div class="field"><textarea class="fi" id="neg_prompt" rows="3">ugly, deformed, noisy, blurry, distorted, out of focus, bad anatomy, bad typography, warped products, misspelled words, cluttered background, watermarks, signatures, text artifacts, low resolution</textarea></div>
+        </div>
+
+        <div class="gen-bar">
+          <button class="btn-gen" id="btn_gen_feed" onclick="generateFeedJSON()">
+            <span id="gen_ic_feed">✦</span><span id="gen_tx_feed">Buat Brief</span>
+          </button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_feed -->
+
+      <!-- ══ TYPOGRAPHY ══ -->
+      <div class="mode-panel" id="mp_typography">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('typ',0,this,'mp_typography')">🏷️ Brand</button>
+          <button class="tab-btn" onclick="switchTab('typ',1,this,'mp_typography')">✏️ Tipografi</button>
+          <button class="tab-btn" onclick="switchTab('typ',2,this,'mp_typography')">🎥 Kamera</button>
+          <button class="tab-btn" onclick="switchTab('typ',3,this,'mp_typography')">🎨 Gaya</button>
+          <button class="tab-btn" onclick="switchTab('typ',4,this,'mp_typography')">👥 Audiens</button>
+        </div>
+        <div class="form-section active" id="typ-0">
+          <p class="sec-label">Identitas Brand</p>
+          <div class="field"><div class="field-label"><span>Nama Brand</span></div><input class="fi" id="typ_brand" type="text" placeholder="cth. Samsung, Tokopedia..."></div>
+          <div class="field"><div class="field-label"><span>Karakter Brand</span></div><div class="toggle-group" id="typ_voice"><button class="tog on" onclick="togSingle(this,'typ_voice')">Profesional</button><button class="tog" onclick="togSingle(this,'typ_voice')">Berani</button><button class="tog" onclick="togSingle(this,'typ_voice')">Ramah</button><button class="tog" onclick="togSingle(this,'typ_voice')">Mewah</button></div></div>
+          <hr class="divider"><p class="sec-label">Palet Warna</p>
+          <div class="field"><div class="field-label"><span>Warna Utama</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_typ" style="background:#0ea5e9"><input type="color" id="c_typ" value="#0ea5e9" oninput="syncColorPair('typ')"></div>
+              <input class="fi" id="h_typ" type="text" value="#0ea5e9" oninput="syncHexPair('typ')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem;text-transform:uppercase">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Warna Sekunder</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_typs" style="background:#020617"><input type="color" id="c_typs" value="#020617" oninput="syncColorPair('typs')"></div>
+              <input class="fi" id="h_typs" type="text" value="#020617" oninput="syncHexPair('typs')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem;text-transform:uppercase">
+            </div>
+          </div>
+        </div>
+        <div class="form-section" id="typ-1">
+          <p class="sec-label">Sistem Tipografi</p>
+          <div class="field"><div class="field-label"><span>Judul Utama</span></div><input class="fi" id="typ_headline" type="text" placeholder="cth. NEXT LEVEL MOBILE"></div>
+          <div class="field"><div class="field-label"><span>Subjudul</span></div><input class="fi" id="typ_sub" type="text" placeholder="cth. Pro Max 16 Series"></div>
+          <div class="field"><div class="field-label"><span>CTA</span></div><input class="fi" id="typ_cta" type="text" placeholder="cth. Beli di Tokopedia"></div>
+          <div class="field"><div class="field-label"><span>Kata Fokus Utama</span><span class="field-hint">Paling dominan</span></div>
+            <div class="tags-wrap" id="typ_focus_wrap" onclick="document.getElementById('typ_focus_in').focus()"><input class="tag-input" id="typ_focus_in" placeholder="Tekan Enter..." onkeydown="addTag(event,'typ_focus_wrap')"></div>
+          </div>
+          <div class="field"><div class="field-label"><span>Kata Sekunder</span></div>
+            <div class="tags-wrap" id="typ_sec_wrap" onclick="document.getElementById('typ_sec_in').focus()"><input class="tag-input" id="typ_sec_in" placeholder="Tekan Enter..." onkeydown="addTag(event,'typ_sec_wrap')"></div>
+          </div>
+          <hr class="divider"><p class="sec-label">Ketegangan Tipografi</p>
+          <div class="field"><div class="field-label"><span>Kontras Ukuran</span></div><div class="toggle-group" id="typ_scale"><button class="tog on" onclick="togSingle(this,'typ_scale')">Dramatis</button><button class="tog" onclick="togSingle(this,'typ_scale')">Sedang</button><button class="tog" onclick="togSingle(this,'typ_scale')">Halus</button></div></div>
+          <div class="field"><div class="field-label"><span>Cropping Teks</span></div><div class="toggle-group" id="typ_crop"><button class="tog on" onclick="togSingle(this,'typ_crop')">Disengaja (Kuat)</button><button class="tog" onclick="togSingle(this,'typ_crop')">Minimal</button><button class="tog" onclick="togSingle(this,'typ_crop')">Tidak Ada</button></div></div>
+          <div class="field"><div class="field-label"><span>Overlap Teks</span></div><div class="toggle-group" id="typ_overlap"><button class="tog on" onclick="togSingle(this,'typ_overlap')">Terkontrol</button><button class="tog" onclick="togSingle(this,'typ_overlap')">Agresif</button><button class="tog" onclick="togSingle(this,'typ_overlap')">Tidak Ada</button></div></div>
+          <div class="field"><div class="field-label"><span>Komposisi Headline</span></div><select class="fi" id="typ_comp"><option>Oversized ~70% kanvas; hierarki agresif; crop sebagian diizinkan</option><option>Sedang ~50% kanvas; hierarki seimbang</option><option>Minimalis ~30% kanvas; breathing room besar</option></select></div>
+        </div>
+        <div class="form-section" id="typ-2">
+          <p class="sec-label">Sistem Kamera</p>
+          <div class="field"><div class="field-label"><span>Lensa</span></div><div class="toggle-group" id="typ_lens"><button class="tog on" onclick="togSingle(this,'typ_lens')">24mm Wide Komersial</button><button class="tog" onclick="togSingle(this,'typ_lens')">35mm Standard</button><button class="tog" onclick="togSingle(this,'typ_lens')">50mm Portrait</button><button class="tog" onclick="togSingle(this,'typ_lens')">85mm Telephoto</button></div></div>
+          <div class="field"><div class="field-label"><span>Perspektif</span></div><div class="toggle-group" id="typ_persp"><button class="tog on" onclick="togSingle(this,'typ_persp')">Distorsi Foreground Dinamis</button><button class="tog" onclick="togSingle(this,'typ_persp')">Eye Level Datar</button><button class="tog" onclick="togSingle(this,'typ_persp')">Bird Eye</button><button class="tog" onclick="togSingle(this,'typ_persp')">Low Angle Dramatis</button></div></div>
+          <div class="field"><div class="field-label"><span>Kedalaman</span></div><div class="toggle-group" id="typ_depth"><button class="tog on" onclick="togSingle(this,'typ_depth')">Sinematik Berlapis</button><button class="tog" onclick="togSingle(this,'typ_depth')">Flat Minimal</button><button class="tog" onclick="togSingle(this,'typ_depth')">Bokeh Dalam</button></div></div>
+          <hr class="divider"><p class="sec-label">Sistem Karakter</p>
+          <div class="field"><div class="field-label"><span>Karakter</span></div><div class="toggle-group" id="typ_char"><button class="tog on" onclick="togSingle(this,'typ_char')">Otomatis (AI pilih)</button><button class="tog" onclick="togSingle(this,'typ_char')">Pria Muda</button><button class="tog" onclick="togSingle(this,'typ_char')">Wanita Muda</button><button class="tog" onclick="togSingle(this,'typ_char')">Tanpa Karakter</button></div></div>
+          <div class="field"><div class="field-label"><span>Ekspresi</span></div><div class="toggle-group" id="typ_expr"><button class="tog on" onclick="togSingle(this,'typ_expr')">Energik & Ekspresif</button><button class="tog" onclick="togSingle(this,'typ_expr')">Percaya Diri</button><button class="tog" onclick="togSingle(this,'typ_expr')">Bahagia Natural</button><button class="tog" onclick="togSingle(this,'typ_expr')">Serius Profesional</button></div></div>
+          <div class="field"><div class="field-label"><span>Pose</span></div><div class="toggle-group" id="typ_pose"><button class="tog on" onclick="togSingle(this,'typ_pose')">Natural Ekspresif</button><button class="tog" onclick="togSingle(this,'typ_pose')">Interaksi Produk</button><button class="tog" onclick="togSingle(this,'typ_pose')">Menunjuk Teks</button><button class="tog" onclick="togSingle(this,'typ_pose')">Action Shot</button></div></div>
+        </div>
+        <div class="form-section" id="typ-3">
+          <p class="sec-label">Visual DNA</p>
+          <div class="field"><div class="field-label"><span>Gaya</span></div><div class="toggle-group" id="typ_style"><button class="tog on" onclick="togSingle(this,'typ_style')">Tech Modern</button><button class="tog" onclick="togSingle(this,'typ_style')">Lifestyle</button><button class="tog" onclick="togSingle(this,'typ_style')">Luxury Premium</button><button class="tog" onclick="togSingle(this,'typ_style')">Streetwear</button><button class="tog" onclick="togSingle(this,'typ_style')">Minimalis</button></div></div>
+          <div class="field"><div class="field-label"><span>Energi Visual</span></div><div class="toggle-group" id="typ_energy"><button class="tog on" onclick="togSingle(this,'typ_energy')">Futuristik</button><button class="tog" onclick="togSingle(this,'typ_energy')">Hangat & Ramah</button><button class="tog" onclick="togSingle(this,'typ_energy')">Gelap & Dramatis</button><button class="tog" onclick="togSingle(this,'typ_energy')">Cerah & Segar</button></div></div>
+          <div class="field"><div class="field-label"><span>Pencahayaan</span></div><div class="toggle-group" id="typ_light"><button class="tog on" onclick="togSingle(this,'typ_light')">High-Key Komersial</button><button class="tog" onclick="togSingle(this,'typ_light')">Dramatis Kontras</button><button class="tog" onclick="togSingle(this,'typ_light')">Neon Glow</button><button class="tog" onclick="togSingle(this,'typ_light')">Cahaya Alami</button></div></div>
+          <div class="field"><div class="field-label"><span>Rasio Aspek</span></div>
+            <div class="ratio-grid" id="typ_ratio">
+              <button class="ratio-btn on" onclick="togRasio(this,'typ_ratio')"><div class="ratio-shape" style="width:20px;height:20px"></div><span class="ratio-lbl">1:1<br>Persegi</span></button>
+              <button class="ratio-btn" onclick="togRasio(this,'typ_ratio')"><div class="ratio-shape" style="width:18px;height:22px"></div><span class="ratio-lbl">4:5<br>Feed</span></button>
+              <button class="ratio-btn" onclick="togRasio(this,'typ_ratio')"><div class="ratio-shape" style="width:14px;height:25px"></div><span class="ratio-lbl">9:16<br>Story</span></button>
+              <button class="ratio-btn" onclick="togRasio(this,'typ_ratio')"><div class="ratio-shape" style="width:25px;height:14px"></div><span class="ratio-lbl">16:9<br>Banner</span></button>
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Efek Visual</span></div><div class="toggle-group" id="typ_fx"><button class="tog on" onclick="togMulti(this)">Panel UI Bersih</button><button class="tog on" onclick="togMulti(this)">Bayangan Lembut</button><button class="tog" onclick="togMulti(this)">Partikel Halus</button><button class="tog" onclick="togMulti(this)">Gradient Depth</button><button class="tog" onclick="togMulti(this)">Neon Rim Light</button></div></div>
+          <div class="field"><div class="field-label"><span>Hindari</span></div>
+            <div class="tags-wrap" id="typ_avoid_wrap" onclick="document.getElementById('typ_avoid_in').focus()">
+              <span class="tag">tampilan poster datar <span class="tag-x" onclick="removeTag(this)">×</span></span>
+              <span class="tag">template canva <span class="tag-x" onclick="removeTag(this)">×</span></span>
+              <input class="tag-input" id="typ_avoid_in" placeholder="Tambah..." onkeydown="addTag(event,'typ_avoid_wrap')">
+            </div>
+          </div>
+        </div>
+        <div class="form-section" id="typ-4">
+          <p class="sec-label">Target Audiens</p>
+          <div class="field"><div class="field-label"><span>Platform</span></div><div class="toggle-group" id="typ_platform"><button class="tog on" onclick="togSingle(this,'typ_platform')">Instagram Feed</button><button class="tog" onclick="togSingle(this,'typ_platform')">TikTok</button><button class="tog" onclick="togSingle(this,'typ_platform')">Facebook Ads</button></div></div>
+          <div class="field"><div class="field-label"><span>Nuansa Kampanye</span></div><div class="toggle-group" id="typ_feel"><button class="tog on" onclick="togMulti(this)">Kampanye Startup Premium</button><button class="tog on" onclick="togMulti(this)">Iklan Meta Viral</button><button class="tog" onclick="togMulti(this)">SaaS Modern</button><button class="tog" onclick="togMulti(this)">E-commerce Gaming</button></div></div>
+          <div class="field"><div class="field-label"><span>Target CTR</span></div><div class="toggle-group" id="typ_ctr"><button class="tog on" onclick="togSingle(this,'typ_ctr')">CTR Tinggi (Hook Kuat)</button><button class="tog" onclick="togSingle(this,'typ_ctr')">Brand Awareness</button><button class="tog" onclick="togSingle(this,'typ_ctr')">Konversi Langsung</button></div></div>
+        </div>
+        <div class="gen-bar">
+          <button class="btn-gen" onclick="generateTypJSON()"><span>✦</span><span>Buat Brief Typography</span></button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_typography -->
+
+      <!-- ══ STORY ══ -->
+      <div class="mode-panel" id="mp_story">
+        <div class="form-section active" style="display:block">
+          <p class="sec-label">Story / Reels Brief</p>
+          <div class="field"><div class="field-label"><span>Nama Brand</span></div><input class="fi" id="st_brand" type="text" placeholder="cth. Wepose Travel"></div>
+          <div class="field"><div class="field-label"><span>Hook Pertama (0-3 detik)</span></div><input class="fi" id="st_hook" type="text" placeholder="cth. JANGAN SCROLL DULU!"></div>
+          <div class="field"><div class="field-label"><span>Pesan Utama</span></div><textarea class="fi" id="st_msg" rows="3" placeholder="cth. Visa China bisa diurus dalam 3 hari kerja tanpa ribet"></textarea></div>
+          <div class="field"><div class="field-label"><span>CTA</span></div><input class="fi" id="st_cta" type="text" placeholder="cth. Swipe Up untuk info lengkap"></div>
+          <hr class="divider"><p class="sec-label">Gaya Visual</p>
+          <div class="field"><div class="field-label"><span>Preset Gaya</span></div><div class="toggle-group" id="st_style"><button class="tog on" onclick="togSingle(this,'st_style')">Sinematik Dinamis</button><button class="tog" onclick="togSingle(this,'st_style')">UGC Autentik</button><button class="tog" onclick="togSingle(this,'st_style')">Minimalis Bersih</button><button class="tog" onclick="togSingle(this,'st_style')">Neon Energik</button></div></div>
+          <div class="field"><div class="field-label"><span>Warna Utama</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_st" style="background:#0c3d4f"><input type="color" id="c_st" value="#0c3d4f" oninput="syncColorPair('st')"></div>
+              <input class="fi" id="h_st" type="text" value="#0c3d4f" oninput="syncHexPair('st')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Format Output</span></div><div class="toggle-group" id="st_fmt"><button class="tog on" onclick="togSingle(this,'st_fmt')">9:16 Story</button><button class="tog" onclick="togSingle(this,'st_fmt')">9:16 Reels</button><button class="tog" onclick="togSingle(this,'st_fmt')">TikTok Full Screen</button></div></div>
+        </div>
+        <div class="gen-bar">
+          <button class="btn-gen" onclick="generateStoryJSON()"><span>✦</span><span>Buat Brief Story</span></button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_story -->
+
+      <!-- ══ THUMBNAIL ══ -->
+      <div class="mode-panel" id="mp_thumbnail">
+        <div class="form-section active" style="display:block">
+          <p class="sec-label">Thumbnail YouTube</p>
+          <div class="field"><div class="field-label"><span>Judul Video</span></div><input class="fi" id="th_title" type="text" placeholder="cth. 5 Kesalahan Fatal Saat Apply Visa"></div>
+          <div class="field"><div class="field-label"><span>Teks Thumbnail</span><span class="field-hint">Max 5 kata, tebal</span></div><input class="fi" id="th_text" type="text" placeholder="cth. KESALAHAN FATAL!"></div>
+          <div class="field"><div class="field-label"><span>Ekspresi Wajah</span></div><div class="toggle-group" id="th_expr"><button class="tog on" onclick="togSingle(this,'th_expr')">Kaget / Shock</button><button class="tog" onclick="togSingle(this,'th_expr')">Marah</button><button class="tog" onclick="togSingle(this,'th_expr')">Bahagia</button><button class="tog" onclick="togSingle(this,'th_expr')">Penasaran</button><button class="tog" onclick="togSingle(this,'th_expr')">Tanpa Wajah</button></div></div>
+          <div class="field"><div class="field-label"><span>Latar Belakang</span></div><div class="toggle-group" id="th_bg"><button class="tog on" onclick="togSingle(this,'th_bg')">Solid Warna</button><button class="tog" onclick="togSingle(this,'th_bg')">Blur Scene</button><button class="tog" onclick="togSingle(this,'th_bg')">Gradient</button><button class="tog" onclick="togSingle(this,'th_bg')">Urban/Outdoor</button></div></div>
+          <div class="field"><div class="field-label"><span>Warna Dominan</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_th" style="background:#ef4444"><input type="color" id="c_th" value="#ef4444" oninput="syncColorPair('th')"></div>
+              <input class="fi" id="h_th" type="text" value="#ef4444" oninput="syncHexPair('th')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Elemen Tambahan</span></div><div class="toggle-group" id="th_el"><button class="tog on" onclick="togMulti(this)">Panah Penunjuk</button><button class="tog" onclick="togMulti(this)">Lingkaran Merah</button><button class="tog" onclick="togMulti(this)">Emoji Besar</button><button class="tog" onclick="togMulti(this)">Tanda Tanya</button></div></div>
+          <div class="field"><div class="field-label"><span>Nama Channel</span></div><input class="fi" id="th_channel" type="text" placeholder="cth. Akhmad Suhardian"></div>
+        </div>
+        <div class="gen-bar">
+          <button class="btn-gen" onclick="generateThumbJSON()"><span>✦</span><span>Buat Brief Thumbnail</span></button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_thumbnail -->
+
+      <!-- ══ CAROUSEL ══ -->
+      <div class="mode-panel" id="mp_carousel">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('car',0,this,'mp_carousel')">📋 Setup</button>
+          <button class="tab-btn" onclick="switchTab('car',1,this,'mp_carousel')">🎞️ Slides</button>
+          <button class="tab-btn" onclick="switchTab('car',2,this,'mp_carousel')">🎨 Gaya</button>
+        </div>
+        <div class="form-section active" id="car-0">
+          <p class="sec-label">Setup Carousel</p>
+          <div class="field"><div class="field-label"><span>Nama Brand</span></div><input class="fi" id="car_brand" type="text" placeholder="cth. Wepose Travel"></div>
+          <div class="field"><div class="field-label"><span>Tipe Carousel</span></div><div class="toggle-group" id="car_type"><button class="tog on" onclick="togSingle(this,'car_type')">Edukatif</button><button class="tog" onclick="togSingle(this,'car_type')">Storytelling</button><button class="tog" onclick="togSingle(this,'car_type')">Produk</button><button class="tog" onclick="togSingle(this,'car_type')">Tips & Trik</button><button class="tog" onclick="togSingle(this,'car_type')">Before-After</button></div></div>
+          <div class="field"><div class="field-label"><span>Jumlah Slide</span></div>
+            <div class="toggle-group" id="car_count">
+              <button class="tog" onclick="togSingle(this,'car_count');syncSlides()">3 Slide</button>
+              <button class="tog" onclick="togSingle(this,'car_count');syncSlides()">4 Slide</button>
+              <button class="tog on" onclick="togSingle(this,'car_count');syncSlides()">5 Slide</button>
+              <button class="tog" onclick="togSingle(this,'car_count');syncSlides()">7 Slide</button>
+              <button class="tog" onclick="togSingle(this,'car_count');syncSlides()">10 Slide</button>
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Topik / Tema</span></div><textarea class="fi" id="car_topic" rows="3" placeholder="cth. 5 kesalahan umum saat apply visa yang sering diabaikan"></textarea></div>
+          <div class="field"><div class="field-label"><span>CTA Slide Terakhir</span></div><input class="fi" id="car_cta" type="text" placeholder="cth. DM 'VISA' untuk info lengkap"></div>
+          <hr class="divider"><p class="sec-label">Konsistensi Visual</p>
+          <div class="field"><div class="field-label"><span>Benang Merah Warna</span></div><div class="toggle-group" id="car_thread"><button class="tog on" onclick="togSingle(this,'car_thread')">Strip Samping Konsisten</button><button class="tog" onclick="togSingle(this,'car_thread')">Header Warna Sama</button><button class="tog" onclick="togSingle(this,'car_thread')">Numbering Visual</button><button class="tog" onclick="togSingle(this,'car_thread')">Background Sama</button></div></div>
+          <div class="field"><div class="field-label"><span>Transisi Antar Slide</span></div><div class="toggle-group" id="car_trans"><button class="tog on" onclick="togSingle(this,'car_trans')">Seamless Edge</button><button class="tog" onclick="togSingle(this,'car_trans')">Cut Bersih</button><button class="tog" onclick="togSingle(this,'car_trans')">Gradient Fade</button></div></div>
+          <div class="field"><div class="field-label"><span>Warna Utama</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_car" style="background:#0c3d4f"><input type="color" id="c_car" value="#0c3d4f" oninput="syncColorPair('car')"></div>
+              <input class="fi" id="h_car" type="text" value="#0c3d4f" oninput="syncHexPair('car')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem">
+            </div>
+          </div>
+        </div>
+        <div class="form-section" id="car-1">
+          <p class="sec-label">Isi Per Slide</p>
+          <div style="margin-bottom:9px;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:0.7rem;color:var(--tm)">Klik slide untuk edit</span>
+            <button onclick="addSlide()" style="padding:3px 9px;border-radius:6px;border:1px solid rgba(200,241,53,0.3);background:var(--adim);color:var(--accent);font-size:0.68rem;cursor:pointer;font-family:'Inter',sans-serif">+ Tambah Slide</button>
+          </div>
+          <div class="slide-list" id="slide_list"></div>
+        </div>
+        <div class="form-section" id="car-2">
+          <p class="sec-label">Gaya Visual Carousel</p>
+          <div class="field"><div class="field-label"><span>Estetika</span></div><div class="toggle-group" id="car_aes"><button class="tog on" onclick="togSingle(this,'car_aes')">Cerah & Segar</button><button class="tog" onclick="togSingle(this,'car_aes')">Gelap & Bold</button><button class="tog" onclick="togSingle(this,'car_aes')">Minimalis Putih</button><button class="tog" onclick="togSingle(this,'car_aes')">Hangat & Nyaman</button></div></div>
+          <div class="field"><div class="field-label"><span>Tipografi</span></div><div class="toggle-group" id="car_typo"><button class="tog on" onclick="togSingle(this,'car_typo')">Space Grotesk</button><button class="tog" onclick="togSingle(this,'car_typo')">Syne</button><button class="tog" onclick="togSingle(this,'car_typo')">Poppins</button><button class="tog" onclick="togSingle(this,'car_typo')">Bebas Neue</button></div></div>
+          <div class="field"><div class="field-label"><span>Rasio</span></div><div class="toggle-group" id="car_ratio"><button class="tog on" onclick="togSingle(this,'car_ratio')">1:1 Persegi</button><button class="tog" onclick="togSingle(this,'car_ratio')">4:5 Portrait</button><button class="tog" onclick="togSingle(this,'car_ratio')">9:16 Story</button></div></div>
+        </div>
+        <div class="gen-bar">
+          <button class="btn-gen" onclick="generateCarouselJSON()"><span>✦</span><span>Buat Brief Carousel</span></button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_carousel -->
+
+      <!-- ══ 9-GRID ══ -->
+      <div class="mode-panel" id="mp_grid9">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('g9',0,this,'mp_grid9')">⊞ Setup Grid</button>
+          <button class="tab-btn" onclick="switchTab('g9',1,this,'mp_grid9')">🎨 Konsep</button>
+          <button class="tab-btn" onclick="switchTab('g9',2,this,'mp_grid9')">📝 Per Tile</button>
+        </div>
+        <div class="form-section active" id="g9-0">
+          <p class="sec-label">Setup 9-Grid Instagram</p>
+          <div class="field"><div class="field-label"><span>Nama Brand / Akun</span></div><input class="fi" id="g9_brand" type="text" placeholder="cth. @akshardesigns.id"></div>
+          <div class="field"><div class="field-label"><span>Konsep Grid</span></div>
+            <div class="toggle-group" id="g9_concept">
+              <button class="tog on" onclick="togSingle(this,'g9_concept');updateGridPreview()">Puzzle Besar</button>
+              <button class="tog" onclick="togSingle(this,'g9_concept');updateGridPreview()">Stripe Vertikal</button>
+              <button class="tog" onclick="togSingle(this,'g9_concept');updateGridPreview()">Diagonal</button>
+              <button class="tog" onclick="togSingle(this,'g9_concept');updateGridPreview()">Row Alternating</button>
+              <button class="tog" onclick="togSingle(this,'g9_concept');updateGridPreview()">Checker</button>
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Preview Grid 3×3</span></div>
+            <div class="grid-preview" id="grid_preview">
+              <div class="grid-cell" onclick="selectCell(1)" id="gc1"><span>1</span><span class="cell-role" id="cr1"></span></div>
+              <div class="grid-cell" onclick="selectCell(2)" id="gc2"><span>2</span><span class="cell-role" id="cr2"></span></div>
+              <div class="grid-cell" onclick="selectCell(3)" id="gc3"><span>3</span><span class="cell-role" id="cr3"></span></div>
+              <div class="grid-cell" onclick="selectCell(4)" id="gc4"><span>4</span><span class="cell-role" id="cr4"></span></div>
+              <div class="grid-cell" onclick="selectCell(5)" id="gc5"><span>5</span><span class="cell-role" id="cr5"></span></div>
+              <div class="grid-cell" onclick="selectCell(6)" id="gc6"><span>6</span><span class="cell-role" id="cr6"></span></div>
+              <div class="grid-cell" onclick="selectCell(7)" id="gc7"><span>7</span><span class="cell-role" id="cr7"></span></div>
+              <div class="grid-cell" onclick="selectCell(8)" id="gc8"><span>8</span><span class="cell-role" id="cr8"></span></div>
+              <div class="grid-cell" onclick="selectCell(9)" id="gc9"><span>9</span><span class="cell-role" id="cr9"></span></div>
+            </div>
+            <p style="font-size:0.63rem;color:var(--tm);margin-top:4px">No. 1 = pojok kiri atas profil Instagram</p>
+          </div>
+          <div class="field"><div class="field-label"><span>Elemen Dominan</span></div><div class="toggle-group" id="g9_dominant"><button class="tog on" onclick="togSingle(this,'g9_dominant')">Foto / Gambar Besar</button><button class="tog" onclick="togSingle(this,'g9_dominant')">Tipografi Raksasa</button><button class="tog" onclick="togSingle(this,'g9_dominant')">Gradien Warna</button><button class="tog" onclick="togSingle(this,'g9_dominant')">Kombinasi</button></div></div>
+          <div class="field"><div class="field-label"><span>Tema Konten</span></div><textarea class="fi" id="g9_theme" rows="2" placeholder="cth. Brand launch Akshardesigns — tema gelap, tipografi bold, lime accent"></textarea></div>
+        </div>
+        <div class="form-section" id="g9-1">
+          <p class="sec-label">Konsep Visual</p>
+          <div class="field"><div class="field-label"><span>Warna Utama</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_g9" style="background:#C8F135"><input type="color" id="c_g9" value="#C8F135" oninput="syncColorPair('g9')"></div>
+              <input class="fi" id="h_g9" type="text" value="#C8F135" oninput="syncHexPair('g9')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Warna Background</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_g9b" style="background:#0A0A0F"><input type="color" id="c_g9b" value="#0A0A0F" oninput="syncColorPair('g9b')"></div>
+              <input class="fi" id="h_g9b" type="text" value="#0A0A0F" oninput="syncHexPair('g9b')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem">
+            </div>
+          </div>
+          <div class="field"><div class="field-label"><span>Estetika</span></div><div class="toggle-group" id="g9_aes"><button class="tog on" onclick="togSingle(this,'g9_aes')">Gelap & Editorial</button><button class="tog" onclick="togSingle(this,'g9_aes')">Terang & Bersih</button><button class="tog" onclick="togSingle(this,'g9_aes')">Gradien Vibrant</button><button class="tog" onclick="togSingle(this,'g9_aes')">Monokrom</button></div></div>
+          <div class="field"><div class="field-label"><span>Font Grid</span></div><div class="toggle-group" id="g9_font"><button class="tog on" onclick="togSingle(this,'g9_font')">Space Grotesk</button><button class="tog" onclick="togSingle(this,'g9_font')">Syne</button><button class="tog" onclick="togSingle(this,'g9_font')">Bebas Neue</button><button class="tog" onclick="togSingle(this,'g9_font')">Anton</button></div></div>
+          <div class="field"><div class="field-label"><span>Aturan Konsistensi</span></div><div class="toggle-group" id="g9_rules"><button class="tog on" onclick="togMulti(this)">Warna sama semua tile</button><button class="tog on" onclick="togMulti(this)">Font terkunci</button><button class="tog on" onclick="togMulti(this)">Margin konsisten</button><button class="tog" onclick="togMulti(this)">Overlapping antar tile</button></div></div>
+        </div>
+        <div class="form-section" id="g9-2">
+          <p class="sec-label">Konten Per Tile</p>
+          <p style="font-size:0.7rem;color:var(--tm);margin-bottom:11px">Definisikan peran tiap tile dalam grid 3×3</p>
+          <div id="g9_tiles"></div>
+        </div>
+        <div class="gen-bar">
+          <button class="btn-gen" onclick="generateGrid9JSON()"><span>✦</span><span>Buat Brief 9-Grid</span></button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_grid9 -->
+
+      <!-- ══ PRODUK ══ -->
+      <div class="mode-panel" id="mp_product">
+        <div class="form-section active" style="display:block">
+          <p class="sec-label">Product Showcase</p>
+          <div class="field"><div class="field-label"><span>Nama Produk</span></div><input class="fi" id="pr_name" type="text" placeholder="cth. Serum Vitamin C 30ml"></div>
+          <div class="field"><div class="field-label"><span>Kategori</span></div><div class="toggle-group" id="pr_cat"><button class="tog on" onclick="togSingle(this,'pr_cat')">Skincare / Beauty</button><button class="tog" onclick="togSingle(this,'pr_cat')">Fashion</button><button class="tog" onclick="togSingle(this,'pr_cat')">Food & Beverage</button><button class="tog" onclick="togSingle(this,'pr_cat')">Elektronik</button><button class="tog" onclick="togSingle(this,'pr_cat')">Lainnya</button></div></div>
+          <div class="field"><div class="field-label"><span>USP Produk</span></div><textarea class="fi" id="pr_usp" rows="3" placeholder="cth. Formula Korea, 50x lebih efektif, cocok semua jenis kulit"></textarea></div>
+          <div class="field"><div class="field-label"><span>Harga / Promo</span></div><input class="fi" id="pr_price" type="text" placeholder="cth. Diskon 50% - Hanya Rp 89.000"></div>
+          <div class="field"><div class="field-label"><span>CTA</span></div><input class="fi" id="pr_cta" type="text" placeholder="cth. Beli Sekarang di Shopee"></div>
+          <hr class="divider"><p class="sec-label">Gaya Visual</p>
+          <div class="field"><div class="field-label"><span>Mood Foto Produk</span></div><div class="toggle-group" id="pr_mood"><button class="tog on" onclick="togSingle(this,'pr_mood')">Studio Bersih</button><button class="tog" onclick="togSingle(this,'pr_mood')">Lifestyle Natural</button><button class="tog" onclick="togSingle(this,'pr_mood')">Luxury Dark</button><button class="tog" onclick="togSingle(this,'pr_mood')">Vibrant Pop</button></div></div>
+          <div class="field"><div class="field-label"><span>Platform Tujuan</span></div><div class="toggle-group" id="pr_plat"><button class="tog on" onclick="togSingle(this,'pr_plat')">Shopee / Tokopedia</button><button class="tog" onclick="togSingle(this,'pr_plat')">Instagram Feed</button><button class="tog" onclick="togSingle(this,'pr_plat')">TikTok Shop</button><button class="tog" onclick="togSingle(this,'pr_plat')">WhatsApp Catalog</button></div></div>
+          <div class="field"><div class="field-label"><span>Warna Dominan</span></div>
+            <div class="color-row">
+              <div class="swatch" id="sw_pr" style="background:#f97316"><input type="color" id="c_pr" value="#f97316" oninput="syncColorPair('pr')"></div>
+              <input class="fi" id="h_pr" type="text" value="#f97316" oninput="syncHexPair('pr')" style="font-family:'JetBrains Mono',monospace;font-size:0.76rem">
+            </div>
+          </div>
+        </div>
+        <div class="gen-bar">
+          <button class="btn-gen" onclick="generateProductJSON()"><span>✦</span><span>Buat Brief Produk</span></button>
+          <button class="btn-reset" onclick="resetForm()" title="Reset">🗑️</button>
+        </div>
+      </div><!-- /mp_product -->
+
+    </div><!-- /panel-left -->
+
+    <!-- RIGHT PANEL -->
+    <div class="panel-right">
+      <div class="out-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="out-title"><span>📄</span> Keluaran JSON</div>
+          <div class="out-status">
+            <div class="sdot" id="sdot"></div>
+            <span id="stxt">Menunggu brief...</span>
+          </div>
+        </div>
+        <div class="out-actions">
+          <button class="act-btn" onclick="copyJSON()" id="copy_btn">⎘ Salin</button>
+          <div class="exp-menu">
+            <button class="act-btn primary" onclick="togExp()">Ekspor ↗</button>
+            <div class="exp-drop" id="exp_drop">
+              <button class="exp-opt" onclick="exportGPT()">🤖 Buka AdsBrief AI</button>
+              <button class="exp-opt" onclick="exportMJ()">🎨 Format Midjourney</button>
+              <div class="exp-div"></div>
+              <button class="exp-opt" onclick="dlJSON()">⬇️ Unduh .json</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="out-body" id="out_body">
+        <div class="empty" id="empty_st">
+          <div class="empty-icon">⬡</div>
+          <div class="empty-title">Brief belum dibuat</div>
+          <div class="empty-desc">Isi form di kiri, lalu klik Buat Brief untuk membuat JSON prompt.</div>
+          <div class="empty-hint">💡 Struktur JSON mengikuti format autofeed.id + kelengkapan branding</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content-area -->
+</div><!-- /app-shell -->
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal_ov" onclick="handleOvClick(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="modal-check">✓</div>
+        <div>
+          <div class="modal-t">Brief siap dieksekusi</div>
+          <div class="modal-sub"><span class="modal-sub-dot"></span>DISALIN KE CLIPBOARD · SIAP DITEMPEL</div>
+        </div>
+      </div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-steps">
+      <div class="mstep">
+        <div class="mstep-box on"><span class="mstep-num on">01</span>📋</div>
+        <div class="mstep-lbl on">Salin Brief</div>
+      </div>
+      <div class="mstep">
+        <div class="mstep-box"><span class="mstep-num">02</span>🤖</div>
+        <div class="mstep-lbl">Buka GPT</div>
+      </div>
+      <div class="mstep">
+        <div class="mstep-box"><span class="mstep-num">03</span>🖼️</div>
+        <div class="mstep-lbl">Mode Visual</div>
+      </div>
+      <div class="mstep">
+        <div class="mstep-box"><span class="mstep-num">04</span>⚡</div>
+        <div class="mstep-lbl">Eksekusi</div>
+      </div>
+    </div>
+    <div class="modal-detail">
+      <div class="modal-dlbl">DETAIL ALUR</div>
+      <ul class="modal-list">
+        <li><span class="li-n">1.</span><span>Klik <strong>Buka AdsBrief AI</strong> di bawah</span></li>
+        <li><span class="li-n">2.</span><span>Aktifkan mode <strong>pembuatan gambar</strong> di ChatGPT</span></li>
+        <li><span class="li-n">3.</span><span>Upload foto produk <strong>(opsional)</strong></span></li>
+        <li><span class="li-n">4.</span><span>Tekan <code>Ctrl+V</code> — prompt sudah otomatis tersalin</span></li>
+        <li><span class="li-n">5.</span><span>Kirim pesan, biarkan AI render desainmu</span></li>
+      </ul>
+    </div>
+    <div class="modal-gpt-row">
+      <span class="mgpt-lbl">URL GPT</span>
+      <input class="mgpt-input" id="gpt_url" type="text" value="https://chatgpt.com/g/g-6a3fe2f7e8008191b5a089cb997ff36e-autoads" placeholder="chatgpt.com/g/g-XXXXXXXX">
+      <button class="mgpt-save" onclick="saveGptUrl()">Simpan</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-dis" onclick="closeModal()">Selesai</button>
+      <div class="modal-fr">
+        <button class="btn-ochatgpt" onclick="openPlain()">Buka ChatGPT ↗</button>
+        <button class="btn-ogpt" onclick="openCustomGPT()">✦ Buka AdsBrief AI ↗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="tw"></div>
+
+</div> <!-- /#app-content -->
+
+<script type="module" src="auth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
